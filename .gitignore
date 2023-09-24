@@ -3,6 +3,7 @@ node_modules
 
 # build
 dist
+__generated__
 
 # secrets
 .env

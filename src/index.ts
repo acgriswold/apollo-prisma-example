@@ -1,50 +1,33 @@
-import { ApolloServer } from '@apollo/server';
-import { startStandaloneServer } from '@apollo/server/standalone';
+import { ApolloServer } from "@apollo/server";
+import { startStandaloneServer } from "@apollo/server/standalone";
+import { BooksDataSource } from "./datasources.js";
+import resolvers from "./resolvers/index.js";
+import { readFileSync } from "fs";
 
-const typeDefs = `#graphql
-  # Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
+const typeDefs = readFileSync("./schema.graphql", { encoding: "utf-8" });
 
-  # This "Book" type defines the queryable fields for every book in our data source.
-  type Book {
-    title: String
-    author: String
-  }
+export interface MyContext {
+  dataSources: {
+    booksAPI: BooksDataSource;
+  };
+}
 
-  # The "Query" type is special: it lists all of the available queries that
-  # clients can execute, along with the return type for each. In this
-  # case, the "books" query returns an array of zero or more Books (defined above).
-  type Query {
-    books: [Book]
-  }
-`;
-
-const books = [
-  {
-    title: 'The Awakening',
-    author: 'Kate Chopin',
-  },
-  {
-    title: 'City of Glass',
-    author: 'Paul Auster',
-  },
-];
-
-const resolvers = {
-  Query: {
-    books: () => books,
-  },
-};
-
-const server = new ApolloServer({
+const server = new ApolloServer<MyContext>({
   typeDefs,
   resolvers,
 });
-
 const environmentPort = parseInt(process.env.APOLLO_SERVER_PORT || '');
 const port = Number.isInteger(environmentPort) ? environmentPort : 4000;
 
 const { url } = await startStandaloneServer(server, {
   listen: { port },
+  context: async () => {
+    return {
+      dataSources: {
+        booksAPI: new BooksDataSource(),
+      },
+    };
+  },
 });
 
-console.log(`🚀  Server ready at: ${url}`);
+console.log(`🚀 Server listening at: ${url}`);
