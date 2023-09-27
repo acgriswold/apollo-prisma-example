@@ -7,3 +7,4 @@ __generated__
 
 # secrets
 .env
+dev.db

@@ -1,14 +1,16 @@
+import { readFileSync } from "fs";
+
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
-import { BooksDataSource } from "./datasources.js";
+
 import resolvers from "./resolvers/index.js";
-import { readFileSync } from "fs";
+import { PrismaClientType, prisma } from "./db.js";
 
 const typeDefs = readFileSync("./schema.graphql", { encoding: "utf-8" });
 
 export interface MyContext {
   dataSources: {
-    booksAPI: BooksDataSource;
+    prisma: PrismaClientType;
   };
 }
 
@@ -24,7 +26,7 @@ const { url } = await startStandaloneServer(server, {
   context: async () => {
     return {
       dataSources: {
-        booksAPI: new BooksDataSource(),
+        prisma: prisma
       },
     };
   },
